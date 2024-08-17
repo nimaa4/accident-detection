@@ -2,30 +2,35 @@ import cv2
 import pandas as pd
 from ultralytics import YOLO
 import cvzone
+from twilio.rest import Client
+
+account_sid = 'AC9877d8222a822a13bb7f15cc9e526b04'
+auth_token = '971a38f14a25a47c7619b131476d3839'
+twilio_phone_number = '+12563336968'
+recipient_phone_number = '+917795193813'
+
+client = Client(account_sid, auth_token)
+
+def send_alert():
+    message = client.messages.create(
+        body='ALERT!!! Accident Detected! Send response team immediately!',
+        from_=twilio_phone_number,
+        to=recipient_phone_number
+    )
+
 
 model = YOLO('best.pt')
-accident_detected=False
-
-def RGB(event, x, y, flags, param):
-    if event == cv2.EVENT_MOUSEMOVE:
-        point = [x, y]
-        print(point)
+accident_detected = False
 
 cv2.namedWindow('RGB')
-cv2.setMouseCallback('RGB', RGB)
-
 cap = cv2.VideoCapture('cr.mp4')
 
 my_file = open("classes.txt", "r")
 data = my_file.read()
 class_list = data.split("\n")
 count = 0
-acci_cnt=0
 while True:
     ret, frame = cap.read()
-    # if not ret:
-    #     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-    #     continue
     count += 1
     if count % 3 != 0:
         continue
@@ -33,10 +38,6 @@ while True:
     results = model.predict(frame)
     a = results[0].boxes.data
     px = pd.DataFrame(a).astype("float")
-    if acci_cnt>=23 and accident_detected:
-        accident_detected=False
-        acci_cnt=0
-    acci_cnt+=1
     for index, row in px.iterrows():
         x1 = int(row[0])
         y1 = int(row[1])
@@ -48,14 +49,16 @@ while True:
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)
             cvzone.putTextRect(frame, f'{c}', (x1, y1), 1, 1)
             if not accident_detected:
-                print("Send Alert")
-                accident_detected=True
+                send_alert()
+                accident_detected = True
         else:
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 1)
             cvzone.putTextRect(frame, f'{c}', (x1, y1), 1, 1)
-
     cv2.imshow("RGB", frame)
     if cv2.waitKey(1) & 0xFF == 27:
         break
 cap.release()
 cv2.destroyAllWindows()
+
+
+
