@@ -4,10 +4,10 @@ from ultralytics import YOLO
 import cvzone
 from twilio.rest import Client
 
-account_sid = 'AC9877d8222a822a13bb7f15cc9e526b04'
-auth_token = '971a38f14a25a47c7619b131476d3839'
-twilio_phone_number = '+12563336968'
-recipient_phone_number = '+917795193813'
+account_sid = '************'
+auth_token = '*****************'
+twilio_phone_number = '**********'
+recipient_phone_number = '***********'
 
 client = Client(account_sid, auth_token)
 
